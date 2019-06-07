@@ -1,10 +1,10 @@
 package com.rajesh.dynamic_feature;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 
-public class SecondActivity extends AppCompatActivity {
+import com.rajesh.appbundle.BaseActivity;
+
+public class SecondActivity extends BaseActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
