@@ -179,7 +179,7 @@ public class MainActivity extends BaseActivity {
                     launchActivity(MainActivity.this);
                 }
             };
-            handler.postDelayed(runnable, 5000);
+            handler.postDelayed(runnable, 2000);
             return;
         }
 
