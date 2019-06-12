@@ -6,7 +6,7 @@
     <string name="downloading">Downloading</string>
     <string name="user_cancelled">User Cancelled</string>
     <string name="installing">Installing</string>
-    <string name="error_for_module">Error for %1$d %2$s</string>
+    <string name="error_for_module">Error for %1$d %2$s %3$s</string>
     <string name="already_installed">Already Installed</string>
     <string name="starting_install_for">Started Installing</string>
 </resources>

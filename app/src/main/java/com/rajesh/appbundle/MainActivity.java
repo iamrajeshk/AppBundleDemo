@@ -18,6 +18,7 @@ import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.Group;
 
 import com.google.android.play.core.splitinstall.SplitInstallException;
+import com.google.android.play.core.splitinstall.SplitInstallHelper;
 import com.google.android.play.core.splitinstall.SplitInstallManager;
 import com.google.android.play.core.splitinstall.SplitInstallManagerFactory;
 import com.google.android.play.core.splitinstall.SplitInstallRequest;
@@ -27,12 +28,14 @@ import com.google.android.play.core.splitinstall.model.SplitInstallErrorCode;
 import com.google.android.play.core.splitinstall.model.SplitInstallSessionStatus;
 import com.google.android.play.core.tasks.OnFailureListener;
 import com.google.android.play.core.tasks.OnSuccessListener;
+import com.rajesh.dynamiclibrary.LibraryActivity;
 
 public class MainActivity extends BaseActivity {
 
     private static final int CONFIRMATION_REQUEST_CODE = 1;
     private static final String PACKAGE_NAME = "com.rajesh.dynamic_feature";
     private static final String SAMPLE_CLASSNAME = "com.rajesh.dynamic_feature.SecondActivity";
+    private static final String FEATURE_NAME = "dynamic_feature";
     private static final String TAG = MainActivity.class.getSimpleName();
     private SplitInstallManager manager;
     private Group progress;
@@ -46,46 +49,45 @@ public class MainActivity extends BaseActivity {
 
         @Override
         public void onStateUpdate(SplitInstallSessionState state) {
-            if (sessionId == state.sessionId()) {
-                switch (state.status()) {
-                    case SplitInstallSessionStatus.DOWNLOADING: {
-                        //  In order to see this, the application has to be uploaded to the Play Store.
-                        displayLoadingState(state, getString(R.string.downloading));
-                    }
-                    case SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION: {
+            switch (state.status()) {
+                case SplitInstallSessionStatus.DOWNLOADING: {
+                    //  In order to see this, the application has to be uploaded to the Play Store.
+                    displayLoadingState(state, getString(R.string.downloading));
+                }
+                case SplitInstallSessionStatus.REQUIRES_USER_CONFIRMATION: {
                 /*
                   This may occur when attempting to download a sufficiently large module.
                   In order to see this, the application has to be uploaded to the Play Store.
                   Then features can be requested until the confirmation path is triggered.
                  */
-                        try {
-                            manager.startConfirmationDialogForResult(state, MainActivity.this, CONFIRMATION_REQUEST_CODE);
-                        } catch (IntentSender.SendIntentException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    case SplitInstallSessionStatus.INSTALLED: {
-                        try {
-                            Context newContext = context.createPackageContext(context.getPackageName(), 0);
-                            launchActivity(newContext);
-                        } catch (PackageManager.NameNotFoundException e) {
-                            e.printStackTrace();
-                            toastAndLog(e.toString());
-                        }
-                    }
-
-                    case SplitInstallSessionStatus.INSTALLING:
-                        displayLoadingState(
-                                state,
-                                getString(R.string.installing)
-                        );
-                    case SplitInstallSessionStatus.FAILED: {
-                        toastAndLog(getString(R.string.error_for_module, state.errorCode(),
-                                state.moduleNames()));
+                    try {
+                        manager.startConfirmationDialogForResult(state, MainActivity.this, CONFIRMATION_REQUEST_CODE);
+                    } catch (IntentSender.SendIntentException e) {
+                        e.printStackTrace();
                     }
                 }
-            } else {
-                toastAndLog("Session didn't match");
+                case SplitInstallSessionStatus.INSTALLED: {
+                    SplitInstallHelper.updateAppInfo(getApplicationContext());
+                    try {
+                        Context newContext = context.createPackageContext(context.getPackageName(), 0);
+                        if (manager.getInstalledModules().contains(FEATURE_NAME)) {
+                            launchActivity(newContext);
+                        }
+                    } catch (PackageManager.NameNotFoundException e) {
+                        e.printStackTrace();
+                        toastAndLog(e.toString());
+                    }
+                }
+
+                case SplitInstallSessionStatus.INSTALLING:
+                    displayLoadingState(
+                            state,
+                            getString(R.string.installing)
+                    );
+                case SplitInstallSessionStatus.FAILED: {
+                    toastAndLog(getString(R.string.error_for_module, state.errorCode(),
+                            state.moduleNames(), state.languages()));
+                }
             }
         }
     };
@@ -214,7 +216,10 @@ public class MainActivity extends BaseActivity {
      * @param newContext
      */
     private void launchActivity(Context newContext) {
-        Intent intent = new Intent().setClassName(BuildConfig.APPLICATION_ID, MainActivity.SAMPLE_CLASSNAME);
+        Intent intent = new Intent(this, LibraryActivity.class);
         startActivity(intent);
+//        Intent intent = new Intent().setClassName(BuildConfig.APPLICATION_ID, MainActivity.SAMPLE_CLASSNAME);
+//        intent.setAction(Intent.ACTION_VIEW);
+//        startActivity(intent);
     }
 }
